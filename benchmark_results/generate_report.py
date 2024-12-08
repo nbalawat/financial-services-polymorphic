@@ -39,18 +39,88 @@ def generate_html(results):
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Database Performance Report</title>
+        <title>Payment System Benchmark Results</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <style>
             body { padding: 20px; }
             .card { margin-bottom: 20px; }
+            .overview-section { 
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: 5px;
+                margin-bottom: 30px;
+            }
+            .highlight-box {
+                background-color: #e9ecef;
+                border-left: 4px solid #6c757d;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 0 4px 4px 0;
+            }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1 class="mb-4">Database Performance Report</h1>
-            
+            <h1 class="mb-4">Payment System Benchmark Results</h1>
+
+            <!-- Project Overview -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Project Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="highlight-box">
+                        <h4>Introduction</h4>
+                        <p>This project implements and evaluates a sophisticated payment processing system that handles multiple payment types across different databases. The system is designed to:</p>
+                        <ul>
+                            <li>Process diverse payment types with different requirements and validation rules</li>
+                            <li>Route payments efficiently based on amount, type, and destination</li>
+                            <li>Store payment data optimally across multiple databases</li>
+                            <li>Maintain high performance under varying load conditions</li>
+                        </ul>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li><strong>Multi-Database Architecture</strong>: Utilizes PostgreSQL, MongoDB, and Redis for different aspects of payment processing</li>
+                            <li><strong>Polymorphic Data Model</strong>: Flexible schema that adapts to different payment types while maintaining data consistency</li>
+                            <li><strong>Smart Routing</strong>: Routes payments based on amount thresholds, processing requirements, and validation needs</li>
+                            <li><strong>Performance Monitoring</strong>: Comprehensive benchmarking of database operations and routing decisions</li>
+                        </ul>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>Test Environment</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <th>Total Payments</th>
+                                            <td>500 per database</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Payment Distribution</th>
+                                            <td>Even mix across types</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Database State</th>
+                                            <td>Fresh instance per run</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Concurrent Operations</th>
+                                            <td>50 parallel requests</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Latency Calculation Methodology</h5>
@@ -120,12 +190,53 @@ def generate_html(results):
         'kafka': defaultdict(list)
     }
 
-    routing_data = {
-        'postgres': defaultdict(list),
-        'mongodb': defaultdict(list),
-        'redis': defaultdict(list),
-        'kafka': defaultdict(list)
-    }
+    routing_data = defaultdict(lambda: defaultdict(list))
+
+    # Process routing data
+    routing_plot_data = defaultdict(list)
+
+    # First, collect all routing data
+    for result in results:
+        data = result['data']
+        if 'grid_metrics' in data and 'routes' in data['grid_metrics']:
+            for route_key, route_data in data['grid_metrics']['routes'].items():
+                # Split route key into components (e.g., "normal-ACH" -> ["normal", "ACH"])
+                parts = route_key.split('-')
+                if len(parts) == 2:
+                    route_type, payment_type = parts
+                    # Convert times to milliseconds
+                    times = [t * 1000 for t in route_data.get('times', [])]  # Convert to ms
+                    if times:
+                        for db in ['postgres', 'mongodb', 'redis']:
+                            routing_data[db][f"{route_type.title()} {payment_type}"].extend(times)
+
+    # Then create the plot data
+    for db_name, db_data in routing_data.items():
+        routing_plot_data[db_name] = []
+        for route_key, values in db_data.items():
+            if values:  # Only add if we have data
+                mean = sum(values) / len(values)
+                sorted_values = sorted(values)
+                median = sorted_values[len(values)//2]
+                p95 = sorted_values[int(len(values)*0.95)]
+                
+                routing_plot_data[db_name].append({
+                    'type': 'box',
+                    'name': route_key,
+                    'y': values,
+                    'boxpoints': 'all',
+                    'jitter': 0.3,
+                    'pointpos': -1.8,
+                    'boxmean': True,
+                    'width': 0.5,
+                    'hovertemplate': 
+                        'Route: %{x}<br>' +
+                        'Value: %{y:.2f}ms<br>' +
+                        f'Mean: {mean:.2f}ms<br>' +
+                        f'Median: {median:.2f}ms<br>' +
+                        f'95th Percentile: {p95:.2f}ms<br>' +
+                        '<extra></extra>'
+                })
 
     # Extract metrics for each database
     for db_name in ['postgres', 'mongodb', 'redis']:
@@ -245,7 +356,6 @@ def generate_html(results):
 
     # Convert data to Plotly format
     plot_data = {}
-    routing_plot_data = {}
     summary_stats = {}  # For comparison table
     
     for db_name, db_data in payment_data.items():
@@ -287,56 +397,27 @@ def generate_html(results):
                         '<extra></extra>'  # Hides secondary box
                 })
 
-    for db_name, db_data in routing_data.items():
-        routing_plot_data[db_name] = []
-        for route_key, values in db_data.items():
-            if values:  # Only add if we have data
-                # Format the route name nicely
-                parts = route_key.split('-')
-                if len(parts) == 2:
-                    route_type, payment_type = parts
-                    name = f"{route_type.title()} {payment_type.upper()}"
-                else:
-                    name = route_key.title()
-                
-                # Calculate statistics for hover text
-                mean = sum(values) / len(values)
-                sorted_values = sorted(values)
-                median = sorted_values[len(values)//2]
-                p95 = sorted_values[int(len(values)*0.95)]
-                
-                routing_plot_data[db_name].append({
-                    'type': 'box',
-                    'name': name,
-                    'y': values,
-                    'boxpoints': 'all',
-                    'jitter': 0.3,
-                    'pointpos': -1.8,
-                    'boxmean': True,
-                    'width': 0.5,
-                    'hovertemplate': 
-                        'Route: %{x}<br>' +
-                        'Value: %{y:.2f}ms<br>' +
-                        f'Mean: {mean:.2f}ms<br>' +
-                        f'Median: {median:.2f}ms<br>' +
-                        f'95th Percentile: {p95:.2f}ms<br>' +
-                        '<extra></extra>'
-                })
-
     # Add JavaScript for box plots
     html += f"""
         <script>
+            // Initialize plot data
             const plotData = {json.dumps(plot_data)};
             const routingPlotData = {json.dumps(routing_plot_data)};
             
             function createBoxPlot(data, elementId, title, tickangle=-45) {{
+                if (!data || data.length === 0) {{
+                    console.log('No data available for plot:', elementId);
+                    document.getElementById(elementId).innerHTML = '<div class="alert alert-warning">No data available for this selection.</div>';
+                    return;
+                }}
+
                 const layout = {{
                     title: {{
                         text: title,
                         font: {{ size: 24 }}
                     }},
                     xaxis: {{
-                        title: elementId === 'performancePlot' ? 'Payment Type' : 'Payment Type - Route',
+                        title: elementId === 'performancePlot' ? 'Payment Type' : 'Route Type',
                         tickangle: tickangle,
                         tickfont: {{ size: 12 }},
                         automargin: true
@@ -392,9 +473,21 @@ def generate_html(results):
                 
                 function updatePlots() {{
                     const selectedDb = selector.value;
+                    console.log('Selected DB:', selectedDb);
+                    console.log('Plot Data:', plotData[selectedDb]);
+                    console.log('Routing Plot Data:', routingPlotData[selectedDb]);
+                    
                     const title = `${{selectedDb.charAt(0).toUpperCase() + selectedDb.slice(1)}} Performance`;
-                    createBoxPlot(plotData[selectedDb], 'performancePlot', title);
-                    createBoxPlot(routingPlotData[selectedDb], 'routingPlot', `${{title}} by Route`, -90);
+                    
+                    // Create performance plot
+                    if (plotData[selectedDb]) {{
+                        createBoxPlot(plotData[selectedDb], 'performancePlot', title);
+                    }}
+                    
+                    // Create routing plot
+                    if (routingPlotData[selectedDb]) {{
+                        createBoxPlot(routingPlotData[selectedDb], 'routingPlot', `${{title}} by Route`, -90);
+                    }}
                 }}
                 
                 // Create initial plots
@@ -419,15 +512,14 @@ def generate_html(results):
                             <option value="postgres">PostgreSQL</option>
                             <option value="mongodb">MongoDB</option>
                             <option value="redis">Redis</option>
-                            <option value="kafka">Kafka</option>
                         </select>
                     </div>
-                    <div class="col-12">
+                    <div class="col-12 mb-5">
                         <h5>Performance by Payment Type</h5>
                         <div id="performancePlot" class="plot-container"></div>
                     </div>
                     <div class="col-12">
-                        <h5>Performance by Payment Type and Routing</h5>
+                        <h5>Performance by Route Type</h5>
                         <div id="routingPlot" class="plot-container"></div>
                     </div>
                 </div>
