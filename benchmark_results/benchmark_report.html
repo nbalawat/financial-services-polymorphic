@@ -1,0 +1,810 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Payment System Benchmark Results</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <style>
+            body { padding: 20px; }
+            .card { margin-bottom: 20px; }
+            .table-sm td, .table-sm th { padding: 0.3rem; }
+            .plot-container { 
+                height: 800px;  
+                width: 100%;
+                margin-bottom: 40px;  
+            }
+            .overview-section { 
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: 5px;
+                margin-bottom: 30px;
+            }
+            .section-header {
+                border-bottom: 2px solid #dee2e6;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            .highlight-box {
+                background-color: #e9ecef;
+                border-left: 4px solid #6c757d;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 0 4px 4px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="mb-4">Payment System Benchmark Results</h1>
+
+            <!-- Overview Section -->
+            <div class="overview-section">
+                <h2 class="section-header">System Overview</h2>
+
+                <div class="highlight-box">
+                    <h4>Polymorphic Data Model</h4>
+                    <p>This benchmark evaluates a sophisticated polymorphic data model designed for handling diverse payment types across multiple databases. The model:</p>
+                    <ul>
+                        <li><strong>Adapts to Different Payment Schemas</strong>: Each payment type (ACH, WIRE, SEPA, etc.) has unique fields and validation requirements</li>
+                        <li><strong>Maintains Consistency</strong>: Common payment attributes are standardized across all types</li>
+                        <li><strong>Enables Flexibility</strong>: New payment types can be added without changing the core data structure</li>
+                    </ul>
+                </div>
+                
+                <h4>Payment Types</h4>
+                <p>The system processes various types of payments, each with different characteristics and requirements:</p>
+                <ul>
+                    <li><strong>ACH (Automated Clearing House)</strong>: Domestic bank-to-bank transfers in the US
+                        <ul>
+                            <li>Normal ACH: Standard transfers with regular processing</li>
+                            <li>High-value ACH: Larger amounts with additional verification</li>
+                        </ul>
+                    </li>
+                    <li><strong>WIRE</strong>: Real-time, irrevocable bank transfers
+                        <ul>
+                            <li>Normal Wire: Standard wire transfers</li>
+                            <li>High-value Wire: Large-value transfers with enhanced security</li>
+                        </ul>
+                    </li>
+                    <li><strong>SEPA (Single Euro Payments Area)</strong>: European payment network
+                        <ul>
+                            <li>Normal SEPA: Regular European transfers</li>
+                            <li>High-value SEPA: Large-value European transfers</li>
+                        </ul>
+                    </li>
+                    <li><strong>RTP (Real-Time Payments)</strong>: Instant payment network
+                        <ul>
+                            <li>Normal RTP: Instant payments with standard limits</li>
+                        </ul>
+                    </li>
+                    <li><strong>SWIFT</strong>: International bank transfers
+                        <ul>
+                            <li>Normal SWIFT: Standard international transfers</li>
+                            <li>High-value SWIFT: Large international transfers</li>
+                        </ul>
+                    </li>
+                    <li><strong>CRYPTO</strong>: Cryptocurrency transactions
+                        <ul>
+                            <li>Major Crypto: Major cryptocurrency transfers</li>
+                            <li>Alt Crypto: Alternative cryptocurrency transfers</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>Polymorphic Implementation Details</h4>
+                <p>The data model is implemented with the following key features:</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Core Components</h5>
+                        <ul>
+                            <li><strong>Base Payment Model</strong>: Contains common fields across all payment types
+                                <ul>
+                                    <li>Transaction ID</li>
+                                    <li>Amount and Currency</li>
+                                    <li>Timestamp and Status</li>
+                                    <li>Source and Destination</li>
+                                </ul>
+                            </li>
+                            <li><strong>Type-Specific Extensions</strong>: Additional fields for each payment type
+                                <ul>
+                                    <li>ACH: Routing numbers, account types</li>
+                                    <li>WIRE: Bank codes, intermediary details</li>
+                                    <li>SEPA: IBAN, BIC codes</li>
+                                    <li>CRYPTO: Wallet addresses, network fees</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Database Implementation</h5>
+                        <ul>
+                            <li><strong>PostgreSQL</strong>: 
+                                <ul>
+                                    <li>Table inheritance for payment types</li>
+                                    <li>JSON fields for flexible metadata</li>
+                                    <li>Strong consistency guarantees</li>
+                                </ul>
+                            </li>
+                            <li><strong>MongoDB</strong>:
+                                <ul>
+                                    <li>Dynamic schemas for each type</li>
+                                    <li>Embedded documents for related data</li>
+                                    <li>Flexible querying capabilities</li>
+                                </ul>
+                            </li>
+                            <li><strong>Redis</strong>:
+                                <ul>
+                                    <li>Hash structures for payment data</li>
+                                    <li>Sets for quick lookups</li>
+                                    <li>Cache for frequent queries</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4>System Architecture</h4>
+                <p>The payment system utilizes a multi-database architecture for optimal performance and reliability:</p>
+                <ul>
+                    <li><strong>PostgreSQL</strong>: Primary database for transaction records and payment details</li>
+                    <li><strong>MongoDB</strong>: Document store for flexible payment metadata and routing information</li>
+                    <li><strong>Redis</strong>: High-speed cache for recent payments and routing decisions</li>
+                    <li><strong>Kafka</strong>: Message broker for asynchronous processing and event streaming</li>
+                </ul>
+
+                <h4>Routing Logic</h4>
+                <p>Payments are routed based on several factors:</p>
+                <ul>
+                    <li>Payment type and amount (normal vs high-value)</li>
+                    <li>Geographic region and currency</li>
+                    <li>Processing speed requirements (instant vs standard)</li>
+                    <li>Risk level and security requirements</li>
+                </ul>
+
+                <h4>Benchmarking Methodology</h4>
+                <p>The benchmark simulates real-world payment processing scenarios with the following characteristics:</p>
+                <ul>
+                    <li><strong>Load Generation</strong>:
+                        <ul>
+                            <li>Concurrent payment requests using asyncio</li>
+                            <li>Random distribution of payment types and amounts</li>
+                            <li>Realistic payload sizes and data structures</li>
+                        </ul>
+                    </li>
+                    <li><strong>Measurement Points</strong>:
+                        <ul>
+                            <li>Database operations (write/read latencies)</li>
+                            <li>Message queue processing times</li>
+                            <li>End-to-end payment processing duration</li>
+                            <li>Per-route and per-database latency metrics</li>
+                        </ul>
+                    </li>
+                    <li><strong>Performance Metrics</strong>:
+                        <ul>
+                            <li>Average latency (mean processing time)</li>
+                            <li>Median latency (50th percentile)</li>
+                            <li>P95 latency (95th percentile)</li>
+                            <li>Throughput (payments/second)</li>
+                            <li>Error rates and types</li>
+                        </ul>
+                    </li>
+                    <li><strong>Test Environment</strong>:
+                        <ul>
+                            <li>Isolated database instances for consistent results</li>
+                            <li>Clean state before each benchmark run</li>
+                            <li>Controlled network conditions</li>
+                            <li>Monitoring of system resources (CPU, memory, I/O)</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>Benchmark Parameters</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th>Total Payments per Run</th>
+                                    <td>500</td>
+                                </tr>
+                                <tr>
+                                    <th>Concurrent Connections</th>
+                                    <td>50</td>
+                                </tr>
+                                <tr>
+                                    <th>Payment Mix</th>
+                                    <td>Random distribution across all types</td>
+                                </tr>
+                                <tr>
+                                    <th>Database State</th>
+                                    <td>Fresh instance per run</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benchmark Results Section -->
+            <h2 class="section-header">Benchmark Results</h2>
+            
+            <h3 class="mb-3">Recent Benchmark Runs</h3>
+    <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Benchmark Run - 2024-12-08 10:15:58</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Total Payments: 500</li>
+                            <li class="list-group-item">Total Duration: 3.57s</li>
+                            <li class="list-group-item">Average Rate: 140.00 payments/sec</li>
+                            <li class="list-group-item">Error Count: 0</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Benchmark Run - 2024-12-08 10:13:36</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Total Payments: 500</li>
+                            <li class="list-group-item">Total Duration: 3.90s</li>
+                            <li class="list-group-item">Average Rate: 128.05 payments/sec</li>
+                            <li class="list-group-item">Error Count: 0</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Benchmark Run - 2024-12-08 10:11:32</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Total Payments: 500</li>
+                            <li class="list-group-item">Total Duration: 3.79s</li>
+                            <li class="list-group-item">Average Rate: 131.91 payments/sec</li>
+                            <li class="list-group-item">Error Count: 0</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Benchmark Run - 2024-12-08 09:29:44</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Total Payments: 500</li>
+                            <li class="list-group-item">Total Duration: 3.08s</li>
+                            <li class="list-group-item">Average Rate: 162.60 payments/sec</li>
+                            <li class="list-group-item">Error Count: 0</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const plotData = {"postgres": [{"type": "box", "name": "CRYPTO", "y": [385.0724697113037, 453.5609289657238, 271.03806625713, 269.8429628860119], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 344.88ms<br>Median: 385.07ms<br>95th Percentile: 453.56ms<br><extra></extra>"}, {"type": "box", "name": "ACH", "y": [333.7432233298697, 392.1211844398862, 382.3364688002545, 218.17561049959554], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 331.59ms<br>Median: 382.34ms<br>95th Percentile: 392.12ms<br><extra></extra>"}, {"type": "box", "name": "SEPA", "y": [374.6171196301778, 375.2773593111736, 326.6465931795956, 309.5499277114868], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 346.52ms<br>Median: 374.62ms<br>95th Percentile: 375.28ms<br><extra></extra>"}, {"type": "box", "name": "WIRE", "y": [303.1772388501114, 429.1578011635022, 319.04732626537947, 261.6178849164177], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 328.25ms<br>Median: 319.05ms<br>95th Percentile: 429.16ms<br><extra></extra>"}, {"type": "box", "name": "SWIFT", "y": [328.17030262637445, 413.85186248355444, 429.6686722682073, 303.80570519830763], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 368.87ms<br>Median: 413.85ms<br>95th Percentile: 429.67ms<br><extra></extra>"}, {"type": "box", "name": "RTP", "y": [430.8357590978796, 376.4078050851822, 317.9152876138687, 239.84112015253382], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 341.25ms<br>Median: 376.41ms<br>95th Percentile: 430.84ms<br><extra></extra>"}], "mongodb": [{"type": "box", "name": "CRYPTO", "y": [49.45303499698639, 35.84858151369317, 48.785927620801054, 18.92808426258176], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 38.25ms<br>Median: 48.79ms<br>95th Percentile: 49.45ms<br><extra></extra>"}, {"type": "box", "name": "ACH", "y": [39.546175700862236, 37.60472649619693, 45.62916703846143, 19.748986656986066], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 35.63ms<br>Median: 39.55ms<br>95th Percentile: 45.63ms<br><extra></extra>"}, {"type": "box", "name": "SEPA", "y": [39.29173662548974, 45.41711400194866, 50.34415641527497, 26.853195456571356], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 40.48ms<br>Median: 45.42ms<br>95th Percentile: 50.34ms<br><extra></extra>"}, {"type": "box", "name": "WIRE", "y": [41.22820864902454, 37.61059504288893, 37.04578654710637, 19.254849938785327], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 33.78ms<br>Median: 37.61ms<br>95th Percentile: 41.23ms<br><extra></extra>"}, {"type": "box", "name": "RTP", "y": [40.64885594628074, 38.15704584121704, 34.72888767719269, 19.098767751379857], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 33.16ms<br>Median: 38.16ms<br>95th Percentile: 40.65ms<br><extra></extra>"}, {"type": "box", "name": "SWIFT", "y": [38.912940334964105, 36.62372165256077, 42.73175092843862, 19.55130419780299], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 34.45ms<br>Median: 38.91ms<br>95th Percentile: 42.73ms<br><extra></extra>"}], "redis": [{"type": "box", "name": "CRYPTO", "y": [47.279128432273865, 48.29855575117954, 74.20328801328485, 29.22931382822436], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.75ms<br>Median: 48.30ms<br>95th Percentile: 74.20ms<br><extra></extra>"}, {"type": "box", "name": "RTP", "y": [36.77801652388139, 45.229268074035645, 54.59417104721069, 23.065805435180664], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 39.92ms<br>Median: 45.23ms<br>95th Percentile: 54.59ms<br><extra></extra>"}, {"type": "box", "name": "ACH", "y": [46.36090848504043, 43.8859604653858, 75.89636937431666, 23.72203300248331], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 47.47ms<br>Median: 46.36ms<br>95th Percentile: 75.90ms<br><extra></extra>"}, {"type": "box", "name": "SEPA", "y": [41.37644029798962, 47.144453699995836, 85.54743381028764, 25.876921276713528], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.99ms<br>Median: 47.14ms<br>95th Percentile: 85.55ms<br><extra></extra>"}, {"type": "box", "name": "WIRE", "y": [44.74220918805412, 48.96756930228991, 71.69969691786656, 29.100165647618912], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 48.63ms<br>Median: 48.97ms<br>95th Percentile: 71.70ms<br><extra></extra>"}, {"type": "box", "name": "SWIFT", "y": [37.606880262300564, 41.451340251498756, 88.72203460106483, 30.69892863637393], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.62ms<br>Median: 41.45ms<br>95th Percentile: 88.72ms<br><extra></extra>"}], "kafka": [{"type": "box", "name": "SEPA", "y": [132.07091841586802, 103.94604338539972, 121.29177288575606, 150.19783046510486, 113.65978310747845, 127.3500452870908, 138.87635866800943, 260.3633117675781], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 143.47ms<br>Median: 132.07ms<br>95th Percentile: 260.36ms<br><extra></extra>"}, {"type": "box", "name": "ACH", "y": [109.55639415317111, 99.68924522399902, 147.19064095441033, 179.27168309688568, 133.09394346701131, 107.86142235710508, 160.72100546301866, 131.62275041852678], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 133.63ms<br>Median: 133.09ms<br>95th Percentile: 179.27ms<br><extra></extra>"}, {"type": "box", "name": "SWIFT", "y": [107.62754714850223, 110.71247774011948, 160.08432287918893, 208.03208029672, 78.4731778231534, 73.82445335388184, 195.15201449394226, 135.93783974647522], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 133.73ms<br>Median: 135.94ms<br>95th Percentile: 208.03ms<br><extra></extra>"}, {"type": "box", "name": "WIRE", "y": [112.2908709961691, 123.11711381463444, 124.48756992816925, 186.083660850042, 112.46788501739502, 121.0686206817627, 110.68002382914226, 275.4698594411214], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 145.71ms<br>Median: 123.12ms<br>95th Percentile: 275.47ms<br><extra></extra>"}, {"type": "box", "name": "CRYPTO", "y": [160.1719244932517, 112.59069767865267, 121.87724925102071, 150.79205450804338, 109.10184208939715, 131.7890144529797, 122.85206376052484, 227.72454619407654], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 142.11ms<br>Median: 131.79ms<br>95th Percentile: 227.72ms<br><extra></extra>"}, {"type": "box", "name": "RTP", "y": [134.93733243508774, 106.91505372524261, 147.31608033180237, 165.8743152135535], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Payment Type: %{x}<br>Value: %{y:.2f}ms<br>Mean: 138.76ms<br>Median: 147.32ms<br>95th Percentile: 165.87ms<br><extra></extra>"}]};
+            const routingPlotData = {"postgres": [{"type": "box", "name": "Normal CRYPTO", "y": [385.0724697113037, 453.5609289657238, 271.03806625713, 269.8429628860119], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 344.88ms<br>Median: 385.07ms<br>95th Percentile: 453.56ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Crypto", "y": [385.0724697113037, 453.5609289657238, 271.03806625713, 269.8429628860119], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 344.88ms<br>Median: 385.07ms<br>95th Percentile: 453.56ms<br><extra></extra>"}, {"type": "box", "name": "Major CRYPTO", "y": [385.0724697113037, 453.5609289657238, 271.03806625713, 269.8429628860119], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 344.88ms<br>Median: 385.07ms<br>95th Percentile: 453.56ms<br><extra></extra>"}, {"type": "box", "name": "Alt CRYPTO", "y": [385.0724697113037, 453.5609289657238, 271.03806625713, 269.8429628860119], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 344.88ms<br>Median: 385.07ms<br>95th Percentile: 453.56ms<br><extra></extra>"}, {"type": "box", "name": "Normal ACH", "y": [333.7432233298697, 392.1211844398862, 382.3364688002545, 218.17561049959554], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 331.59ms<br>Median: 382.34ms<br>95th Percentile: 392.12ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Ach", "y": [333.7432233298697, 392.1211844398862, 382.3364688002545, 218.17561049959554], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 331.59ms<br>Median: 382.34ms<br>95th Percentile: 392.12ms<br><extra></extra>"}, {"type": "box", "name": "Normal SEPA", "y": [374.6171196301778, 375.2773593111736, 326.6465931795956, 309.5499277114868], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 346.52ms<br>Median: 374.62ms<br>95th Percentile: 375.28ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Sepa", "y": [374.6171196301778, 375.2773593111736, 326.6465931795956, 309.5499277114868], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 346.52ms<br>Median: 374.62ms<br>95th Percentile: 375.28ms<br><extra></extra>"}, {"type": "box", "name": "Normal WIRE", "y": [303.1772388501114, 429.1578011635022, 319.04732626537947, 261.6178849164177], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 328.25ms<br>Median: 319.05ms<br>95th Percentile: 429.16ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Wire", "y": [303.1772388501114, 429.1578011635022, 319.04732626537947, 261.6178849164177], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 328.25ms<br>Median: 319.05ms<br>95th Percentile: 429.16ms<br><extra></extra>"}, {"type": "box", "name": "Normal SWIFT", "y": [328.17030262637445, 413.85186248355444, 429.6686722682073, 303.80570519830763], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 368.87ms<br>Median: 413.85ms<br>95th Percentile: 429.67ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Swift", "y": [328.17030262637445, 413.85186248355444, 429.6686722682073, 303.80570519830763], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 368.87ms<br>Median: 413.85ms<br>95th Percentile: 429.67ms<br><extra></extra>"}, {"type": "box", "name": "Normal RTP", "y": [430.8357590978796, 376.4078050851822, 317.9152876138687, 239.84112015253382], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 341.25ms<br>Median: 376.41ms<br>95th Percentile: 430.84ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Rtp", "y": [430.8357590978796, 376.4078050851822, 317.9152876138687, 239.84112015253382], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 341.25ms<br>Median: 376.41ms<br>95th Percentile: 430.84ms<br><extra></extra>"}], "mongodb": [{"type": "box", "name": "Normal CRYPTO", "y": [49.45303499698639, 35.84858151369317, 48.785927620801054, 18.92808426258176], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 38.25ms<br>Median: 48.79ms<br>95th Percentile: 49.45ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Crypto", "y": [49.45303499698639, 35.84858151369317, 48.785927620801054, 18.92808426258176], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 38.25ms<br>Median: 48.79ms<br>95th Percentile: 49.45ms<br><extra></extra>"}, {"type": "box", "name": "Major CRYPTO", "y": [49.45303499698639, 35.84858151369317, 48.785927620801054, 18.92808426258176], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 38.25ms<br>Median: 48.79ms<br>95th Percentile: 49.45ms<br><extra></extra>"}, {"type": "box", "name": "Alt CRYPTO", "y": [49.45303499698639, 35.84858151369317, 48.785927620801054, 18.92808426258176], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 38.25ms<br>Median: 48.79ms<br>95th Percentile: 49.45ms<br><extra></extra>"}, {"type": "box", "name": "Normal ACH", "y": [39.546175700862236, 37.60472649619693, 45.62916703846143, 19.748986656986066], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 35.63ms<br>Median: 39.55ms<br>95th Percentile: 45.63ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Ach", "y": [39.546175700862236, 37.60472649619693, 45.62916703846143, 19.748986656986066], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 35.63ms<br>Median: 39.55ms<br>95th Percentile: 45.63ms<br><extra></extra>"}, {"type": "box", "name": "Normal SEPA", "y": [39.29173662548974, 45.41711400194866, 50.34415641527497, 26.853195456571356], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 40.48ms<br>Median: 45.42ms<br>95th Percentile: 50.34ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Sepa", "y": [39.29173662548974, 45.41711400194866, 50.34415641527497, 26.853195456571356], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 40.48ms<br>Median: 45.42ms<br>95th Percentile: 50.34ms<br><extra></extra>"}, {"type": "box", "name": "Normal WIRE", "y": [41.22820864902454, 37.61059504288893, 37.04578654710637, 19.254849938785327], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 33.78ms<br>Median: 37.61ms<br>95th Percentile: 41.23ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Wire", "y": [41.22820864902454, 37.61059504288893, 37.04578654710637, 19.254849938785327], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 33.78ms<br>Median: 37.61ms<br>95th Percentile: 41.23ms<br><extra></extra>"}, {"type": "box", "name": "Normal RTP", "y": [40.64885594628074, 38.15704584121704, 34.72888767719269, 19.098767751379857], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 33.16ms<br>Median: 38.16ms<br>95th Percentile: 40.65ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Rtp", "y": [40.64885594628074, 38.15704584121704, 34.72888767719269, 19.098767751379857], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 33.16ms<br>Median: 38.16ms<br>95th Percentile: 40.65ms<br><extra></extra>"}, {"type": "box", "name": "Normal SWIFT", "y": [38.912940334964105, 36.62372165256077, 42.73175092843862, 19.55130419780299], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 34.45ms<br>Median: 38.91ms<br>95th Percentile: 42.73ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Swift", "y": [38.912940334964105, 36.62372165256077, 42.73175092843862, 19.55130419780299], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 34.45ms<br>Median: 38.91ms<br>95th Percentile: 42.73ms<br><extra></extra>"}], "redis": [{"type": "box", "name": "Normal CRYPTO", "y": [47.279128432273865, 48.29855575117954, 74.20328801328485, 29.22931382822436], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.75ms<br>Median: 48.30ms<br>95th Percentile: 74.20ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Crypto", "y": [47.279128432273865, 48.29855575117954, 74.20328801328485, 29.22931382822436], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.75ms<br>Median: 48.30ms<br>95th Percentile: 74.20ms<br><extra></extra>"}, {"type": "box", "name": "Major CRYPTO", "y": [47.279128432273865, 48.29855575117954, 74.20328801328485, 29.22931382822436], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.75ms<br>Median: 48.30ms<br>95th Percentile: 74.20ms<br><extra></extra>"}, {"type": "box", "name": "Alt CRYPTO", "y": [47.279128432273865, 48.29855575117954, 74.20328801328485, 29.22931382822436], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.75ms<br>Median: 48.30ms<br>95th Percentile: 74.20ms<br><extra></extra>"}, {"type": "box", "name": "Normal RTP", "y": [36.77801652388139, 45.229268074035645, 54.59417104721069, 23.065805435180664], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 39.92ms<br>Median: 45.23ms<br>95th Percentile: 54.59ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Rtp", "y": [36.77801652388139, 45.229268074035645, 54.59417104721069, 23.065805435180664], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 39.92ms<br>Median: 45.23ms<br>95th Percentile: 54.59ms<br><extra></extra>"}, {"type": "box", "name": "Normal ACH", "y": [46.36090848504043, 43.8859604653858, 75.89636937431666, 23.72203300248331], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 47.47ms<br>Median: 46.36ms<br>95th Percentile: 75.90ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Ach", "y": [46.36090848504043, 43.8859604653858, 75.89636937431666, 23.72203300248331], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 47.47ms<br>Median: 46.36ms<br>95th Percentile: 75.90ms<br><extra></extra>"}, {"type": "box", "name": "Normal SEPA", "y": [41.37644029798962, 47.144453699995836, 85.54743381028764, 25.876921276713528], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.99ms<br>Median: 47.14ms<br>95th Percentile: 85.55ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Sepa", "y": [41.37644029798962, 47.144453699995836, 85.54743381028764, 25.876921276713528], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.99ms<br>Median: 47.14ms<br>95th Percentile: 85.55ms<br><extra></extra>"}, {"type": "box", "name": "Normal WIRE", "y": [44.74220918805412, 48.96756930228991, 71.69969691786656, 29.100165647618912], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 48.63ms<br>Median: 48.97ms<br>95th Percentile: 71.70ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Wire", "y": [44.74220918805412, 48.96756930228991, 71.69969691786656, 29.100165647618912], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 48.63ms<br>Median: 48.97ms<br>95th Percentile: 71.70ms<br><extra></extra>"}, {"type": "box", "name": "Normal SWIFT", "y": [37.606880262300564, 41.451340251498756, 88.72203460106483, 30.69892863637393], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.62ms<br>Median: 41.45ms<br>95th Percentile: 88.72ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Swift", "y": [37.606880262300564, 41.451340251498756, 88.72203460106483, 30.69892863637393], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 49.62ms<br>Median: 41.45ms<br>95th Percentile: 88.72ms<br><extra></extra>"}], "kafka": [{"type": "box", "name": "Normal SEPA", "y": [132.07091841586802, 103.94604338539972, 121.29177288575606, 150.19783046510486], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 126.88ms<br>Median: 132.07ms<br>95th Percentile: 150.20ms<br><extra></extra>"}, {"type": "box", "name": "Normal ACH", "y": [109.55639415317111, 99.68924522399902, 147.19064095441033, 179.27168309688568], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 133.93ms<br>Median: 147.19ms<br>95th Percentile: 179.27ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Swift", "y": [107.62754714850223, 110.71247774011948, 160.08432287918893, 208.03208029672], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 146.61ms<br>Median: 160.08ms<br>95th Percentile: 208.03ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Wire", "y": [112.2908709961691, 123.11711381463444, 124.48756992816925, 186.083660850042], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 136.49ms<br>Median: 124.49ms<br>95th Percentile: 186.08ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Sepa", "y": [113.65978310747845, 127.3500452870908, 138.87635866800943, 260.3633117675781], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 160.06ms<br>Median: 138.88ms<br>95th Percentile: 260.36ms<br><extra></extra>"}, {"type": "box", "name": "Major CRYPTO", "y": [160.1719244932517, 112.59069767865267, 121.87724925102071, 150.79205450804338], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 136.36ms<br>Median: 150.79ms<br>95th Percentile: 160.17ms<br><extra></extra>"}, {"type": "box", "name": "Alt CRYPTO", "y": [109.10184208939715, 131.7890144529797, 122.85206376052484, 227.72454619407654], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 147.87ms<br>Median: 131.79ms<br>95th Percentile: 227.72ms<br><extra></extra>"}, {"type": "box", "name": "High-Value-Ach", "y": [133.09394346701131, 107.86142235710508, 160.72100546301866, 131.62275041852678], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 133.32ms<br>Median: 133.09ms<br>95th Percentile: 160.72ms<br><extra></extra>"}, {"type": "box", "name": "Normal RTP", "y": [134.93733243508774, 106.91505372524261, 147.31608033180237, 165.8743152135535], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 138.76ms<br>Median: 147.32ms<br>95th Percentile: 165.87ms<br><extra></extra>"}, {"type": "box", "name": "Normal WIRE", "y": [112.46788501739502, 121.0686206817627, 110.68002382914226, 275.4698594411214], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 154.92ms<br>Median: 121.07ms<br>95th Percentile: 275.47ms<br><extra></extra>"}, {"type": "box", "name": "Normal SWIFT", "y": [78.4731778231534, 73.82445335388184, 195.15201449394226, 135.93783974647522], "boxpoints": "all", "jitter": 0.3, "pointpos": -1.8, "boxmean": true, "width": 0.5, "hovertemplate": "Route: %{x}<br>Value: %{y:.2f}ms<br>Mean: 120.85ms<br>Median: 135.94ms<br>95th Percentile: 195.15ms<br><extra></extra>"}]};
+            
+            function createBoxPlot(data, elementId, title, tickangle=-45) {
+                const layout = {
+                    title: {
+                        text: title,
+                        font: { size: 24 }
+                    },
+                    xaxis: {
+                        title: elementId === 'performancePlot' ? 'Payment Type' : 'Payment Type - Route',
+                        tickangle: tickangle,
+                        tickfont: { size: 12 },
+                        automargin: true
+                    },
+                    yaxis: {
+                        title: 'Time (ms)',
+                        zeroline: false,
+                        gridcolor: 'lightgray',
+                        tickfont: { size: 14 },
+                        automargin: true
+                    },
+                    showlegend: false,
+                    height: 700,
+                    margin: { 
+                        t: 60,
+                        b: 150,  
+                        l: 100,
+                        r: 40
+                    },
+                    boxmode: 'group',
+                    plot_bgcolor: '#fff',
+                    paper_bgcolor: '#fff',
+                    hoverlabel: {
+                        bgcolor: 'white',
+                        font: { size: 14 }
+                    }
+                };
+                
+                // Sort the data by name for consistent ordering
+                const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name));
+                
+                // Adjust box width based on number of boxes
+                const boxWidth = Math.max(0.3, Math.min(0.8, 8 / sortedData.length));
+                sortedData.forEach(box => {
+                    box.width = boxWidth;
+                });
+                
+                const config = {
+                    displayModeBar: true,
+                    responsive: true,
+                    displaylogo: false,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                };
+                
+                Plotly.newPlot(elementId, sortedData, layout, config);
+            }
+            
+            // Initial plot
+            document.addEventListener('DOMContentLoaded', function() {
+                const selector = document.getElementById('databaseSelector');
+                
+                function updatePlots() {
+                    const selectedDb = selector.value;
+                    const title = `${selectedDb.charAt(0).toUpperCase() + selectedDb.slice(1)} Performance`;
+                    createBoxPlot(plotData[selectedDb], 'performancePlot', title);
+                    createBoxPlot(routingPlotData[selectedDb], 'routingPlot', `${title} by Route`, -90);
+                }
+                
+                // Create initial plots
+                updatePlots();
+                
+                // Update plots when selection changes
+                selector.addEventListener('change', updatePlots);
+            });
+        </script>
+    
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance Distribution by Database</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-4">  
+                        <select id="databaseSelector" class="form-select" style="width: 200px;">
+                            <option value="postgres">PostgreSQL</option>
+                            <option value="mongodb">MongoDB</option>
+                            <option value="redis">Redis</option>
+                            <option value="kafka">Kafka</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <h5>Performance by Payment Type</h5>
+                        <div id="performancePlot" class="plot-container"></div>
+                    </div>
+                    <div class="col-12">
+                        <h5>Performance by Payment Type and Routing</h5>
+                        <div id="routingPlot" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Database Performance Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Database</th>
+                                <th>Payment Type</th>
+                                <th>Mean (ms)</th>
+                                <th>Median (ms)</th>
+                                <th>95th Percentile (ms)</th>
+                                <th>Sample Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    
+                <tr>
+                    <td><strong>Kafka</strong></td>
+                    <td>ACH</td>
+                    <td>133.63</td>
+                    <td>133.09</td>
+                    <td>179.27</td>
+                    <td>8</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>CRYPTO</td>
+                    <td>142.11</td>
+                    <td>131.79</td>
+                    <td>227.72</td>
+                    <td>8</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>RTP</td>
+                    <td>138.76</td>
+                    <td>147.32</td>
+                    <td>165.87</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SEPA</td>
+                    <td>143.47</td>
+                    <td>132.07</td>
+                    <td>260.36</td>
+                    <td>8</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SWIFT</td>
+                    <td>133.73</td>
+                    <td>135.94</td>
+                    <td>208.03</td>
+                    <td>8</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>WIRE</td>
+                    <td>145.71</td>
+                    <td>123.12</td>
+                    <td>275.47</td>
+                    <td>8</td>
+                </tr>
+            
+                <tr>
+                    <td><strong>Mongodb</strong></td>
+                    <td>ACH</td>
+                    <td>35.63</td>
+                    <td>39.55</td>
+                    <td>45.63</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>CRYPTO</td>
+                    <td>38.25</td>
+                    <td>48.79</td>
+                    <td>49.45</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>RTP</td>
+                    <td>33.16</td>
+                    <td>38.16</td>
+                    <td>40.65</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SEPA</td>
+                    <td>40.48</td>
+                    <td>45.42</td>
+                    <td>50.34</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SWIFT</td>
+                    <td>34.45</td>
+                    <td>38.91</td>
+                    <td>42.73</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>WIRE</td>
+                    <td>33.78</td>
+                    <td>37.61</td>
+                    <td>41.23</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td><strong>Postgres</strong></td>
+                    <td>ACH</td>
+                    <td>331.59</td>
+                    <td>382.34</td>
+                    <td>392.12</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>CRYPTO</td>
+                    <td>344.88</td>
+                    <td>385.07</td>
+                    <td>453.56</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>RTP</td>
+                    <td>341.25</td>
+                    <td>376.41</td>
+                    <td>430.84</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SEPA</td>
+                    <td>346.52</td>
+                    <td>374.62</td>
+                    <td>375.28</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SWIFT</td>
+                    <td>368.87</td>
+                    <td>413.85</td>
+                    <td>429.67</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>WIRE</td>
+                    <td>328.25</td>
+                    <td>319.05</td>
+                    <td>429.16</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td><strong>Redis</strong></td>
+                    <td>ACH</td>
+                    <td>47.47</td>
+                    <td>46.36</td>
+                    <td>75.90</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>CRYPTO</td>
+                    <td>49.75</td>
+                    <td>48.30</td>
+                    <td>74.20</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>RTP</td>
+                    <td>39.92</td>
+                    <td>45.23</td>
+                    <td>54.59</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SEPA</td>
+                    <td>49.99</td>
+                    <td>47.14</td>
+                    <td>85.55</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>SWIFT</td>
+                    <td>49.62</td>
+                    <td>41.45</td>
+                    <td>88.72</td>
+                    <td>4</td>
+                </tr>
+            
+                <tr>
+                    <td></td>
+                    <td>WIRE</td>
+                    <td>48.63</td>
+                    <td>48.97</td>
+                    <td>71.70</td>
+                    <td>4</td>
+                </tr>
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    
+                <h6 class="mb-3">Detailed Performance Metrics</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Payment Type</th>
+                                <th>Database</th>
+                                <th>Transactions</th>
+                                <th>Avg (ms)</th>
+                                <th>Median (ms)</th>
+                                <th>P95 (ms)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    
+                    <tr>
+                        <td>CRYPTO</td>
+                        <td>postgres</td>
+                        <td>80</td>
+                        <td>385.07</td>
+                        <td>235.72</td>
+                        <td>1159.25</td>
+                    </tr>
+                
+                    <tr>
+                        <td>CRYPTO</td>
+                        <td>mongodb</td>
+                        <td>80</td>
+                        <td>49.45</td>
+                        <td>29.09</td>
+                        <td>119.60</td>
+                    </tr>
+                
+                    <tr>
+                        <td>ACH</td>
+                        <td>postgres</td>
+                        <td>82</td>
+                        <td>333.74</td>
+                        <td>197.44</td>
+                        <td>1200.00</td>
+                    </tr>
+                
+                    <tr>
+                        <td>ACH</td>
+                        <td>mongodb</td>
+                        <td>82</td>
+                        <td>39.55</td>
+                        <td>27.61</td>
+                        <td>108.95</td>
+                    </tr>
+                
+                    <tr>
+                        <td>SEPA</td>
+                        <td>postgres</td>
+                        <td>84</td>
+                        <td>374.62</td>
+                        <td>216.28</td>
+                        <td>1200.54</td>
+                    </tr>
+                
+                    <tr>
+                        <td>SEPA</td>
+                        <td>mongodb</td>
+                        <td>84</td>
+                        <td>39.29</td>
+                        <td>28.74</td>
+                        <td>103.71</td>
+                    </tr>
+                
+                    <tr>
+                        <td>WIRE</td>
+                        <td>postgres</td>
+                        <td>89</td>
+                        <td>303.18</td>
+                        <td>181.85</td>
+                        <td>1156.05</td>
+                    </tr>
+                
+                    <tr>
+                        <td>WIRE</td>
+                        <td>mongodb</td>
+                        <td>89</td>
+                        <td>41.23</td>
+                        <td>30.31</td>
+                        <td>103.89</td>
+                    </tr>
+                
+                    <tr>
+                        <td>SWIFT</td>
+                        <td>postgres</td>
+                        <td>77</td>
+                        <td>328.17</td>
+                        <td>237.35</td>
+                        <td>1222.59</td>
+                    </tr>
+                
+                    <tr>
+                        <td>SWIFT</td>
+                        <td>mongodb</td>
+                        <td>77</td>
+                        <td>38.91</td>
+                        <td>29.83</td>
+                        <td>86.85</td>
+                    </tr>
+                
+                    <tr>
+                        <td>RTP</td>
+                        <td>postgres</td>
+                        <td>88</td>
+                        <td>430.84</td>
+                        <td>284.28</td>
+                        <td>1212.03</td>
+                    </tr>
+                
+                    <tr>
+                        <td>RTP</td>
+                        <td>mongodb</td>
+                        <td>88</td>
+                        <td>40.65</td>
+                        <td>28.55</td>
+                        <td>113.51</td>
+                    </tr>
+                
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Payment Routing Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="routingChart"></canvas>
+            </div>
+        </div>
+    
+        <script>
+            const ctx = document.getElementById('routingChart');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['alt-crypto','normal-rtp','high-value-ach','normal-sepa','major-crypto','high-value-wire','high-value-sepa','normal-ach','high-value-swift','normal-wire','normal-swift'],
+                    datasets: [{
+                        label: 'Payment Count',
+                        data: [41,88,37,43,39,81,41,45,66,8,11],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    
+        </div>
+    </body>
+    </html>
+    
