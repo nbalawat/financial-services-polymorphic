@@ -43,6 +43,148 @@ class ReportGenerator:
         """
         return intro
     
+    def generate_distribution_summary(self) -> str:
+        """Generate summary of payment type and database distribution with timing statistics"""
+        # Calculate payment type statistics
+        payment_stats_db = self.df.groupby('payment_type').agg({
+            'persistence_time': ['count', 'mean', 'median', 'std', 'min', 'max', lambda x: np.percentile(x, 95)]
+        }).round(2)
+        
+        payment_stats_router = self.df.groupby('payment_type').agg({
+            'router_processing_time': ['count', 'mean', 'median', 'std', 'min', 'max', lambda x: np.percentile(x, 95)]
+        }).round(2)
+        
+        payment_stats_total = self.df.groupby('payment_type').agg({
+            'total_time_ms': ['count', 'mean', 'median', 'std', 'min', 'max', lambda x: np.percentile(x, 95)]
+        }).round(2)
+        
+        # Rename columns for clarity
+        payment_stats_db.columns = [
+            'Count', 'Avg DB Time', 'Median DB Time', 'Std DB Time', 'Min DB Time', 'Max DB Time', 'P95 DB Time'
+        ]
+        
+        payment_stats_router.columns = [
+            'Count', 'Avg Router Time', 'Median Router Time', 'Std Router Time', 'Min Router Time', 'Max Router Time', 'P95 Router Time'
+        ]
+        
+        payment_stats_total.columns = [
+            'Count', 'Avg Total Time', 'Median Total Time', 'Std Total Time', 'Min Total Time', 'Max Total Time', 'P95 Total Time'
+        ]
+        
+        # Calculate database statistics
+        db_stats = self.df.groupby('database_type').agg({
+            'total_time_ms': ['count', 'mean', 'median', 'std', 'min', 'max', lambda x: np.percentile(x, 95)],
+            'persistence_time': ['mean', 'median', 'std', 'min', 'max', lambda x: np.percentile(x, 95)]
+        }).round(2)
+        
+        # Rename columns for clarity
+        db_stats.columns = [
+            'Count', 'Avg Total Time', 'Median Total Time', 'Std Total Time', 'Min Total Time', 'Max Total Time', 'P95 Total Time',
+            'Avg DB Time', 'Median DB Time', 'Std DB Time', 'Min DB Time', 'Max DB Time', 'P95 DB Time'
+        ]
+        
+        # Filter out outliers for plotting
+        df_filtered = self.df.copy()
+        for col in ['total_time_ms', 'persistence_time', 'router_processing_time']:
+            df_filtered.loc[df_filtered[col] > 100, col] = None
+        
+        # Create distribution plots
+        fig_payments = go.Figure()
+        for col in ['total_time_ms', 'persistence_time', 'router_processing_time']:
+            fig_payments.add_trace(go.Box(
+                y=df_filtered[col],
+                x=df_filtered['payment_type'],
+                name=col.replace('_', ' ').title(),
+                boxmean=True
+            ))
+        fig_payments.update_layout(
+            title="Payment Type Timing Distribution (≤ 100ms)",
+            xaxis_title="Payment Type",
+            yaxis_title="Time (ms)",
+            boxmode='group',
+            yaxis_range=[0, 100]
+        )
+        
+        fig_db = go.Figure()
+        for col in ['total_time_ms', 'persistence_time']:
+            fig_db.add_trace(go.Box(
+                y=df_filtered[col],
+                x=df_filtered['database_type'],
+                name=col.replace('_', ' ').title(),
+                boxmean=True
+            ))
+        fig_db.update_layout(
+            title="Database Timing Distribution (≤ 100ms)",
+            xaxis_title="Database Type",
+            yaxis_title="Time (ms)",
+            boxmode='group',
+            yaxis_range=[0, 100]
+        )
+        
+        # Calculate percentage of outliers
+        outlier_stats = {}
+        for col in ['total_time_ms', 'persistence_time', 'router_processing_time']:
+            total = len(self.df[col].dropna())
+            outliers = len(self.df[self.df[col] > 100][col].dropna())
+            pct = (outliers / total * 100) if total > 0 else 0
+            outlier_stats[col] = f"{outliers:,} ({pct:.1f}%)"
+        
+        outlier_info = f"""
+        <div class="alert alert-info">
+            <strong>Note:</strong> Outliers (>100ms) excluded from plots:
+            <ul>
+                <li>Total Time: {outlier_stats['total_time_ms']} measurements</li>
+                <li>DB Time: {outlier_stats['persistence_time']} measurements</li>
+                <li>Router Time: {outlier_stats['router_processing_time']} measurements</li>
+            </ul>
+        </div>
+        """
+        
+        summary = f"""
+        <div class="section">
+            <h2>Distribution Analysis</h2>
+            {outlier_info}
+            
+            <div class="row">
+                <div class="col-12">
+                    <h3>Payment Type Distribution</h3>
+                    <h4>Database Time</h4>
+                    <div class="table-responsive">
+                        {payment_stats_db.to_html(classes='table table-striped table-sm', 
+                                            float_format=lambda x: f'{x:,.2f}' if pd.notnull(x) else '')}
+                    </div>
+                    <h4>Router Processing Time</h4>
+                    <div class="table-responsive">
+                        {payment_stats_router.to_html(classes='table table-striped table-sm',
+                                            float_format=lambda x: f'{x:,.2f}' if pd.notnull(x) else '')}
+                    </div>
+                    <h4>Total Time</h4>
+                    <div class="table-responsive">
+                        {payment_stats_total.to_html(classes='table table-striped table-sm',
+                                            float_format=lambda x: f'{x:,.2f}' if pd.notnull(x) else '')}
+                    </div>
+                    <div class="plot-container">
+                        {fig_payments.to_html(full_html=False, include_plotlyjs=False)}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h3>Database Distribution</h3>
+                    <div class="table-responsive">
+                        {db_stats.to_html(classes='table table-striped table-sm',
+                                        float_format=lambda x: f'{x:,.2f}' if pd.notnull(x) else '')}
+                    </div>
+                    <div class="plot-container">
+                        {fig_db.to_html(full_html=False, include_plotlyjs=False)}
+                    </div>
+                </div>
+            </div>
+        </div>
+        """
+        return summary
+    
     def generate_summary_section(self) -> str:
         """Generate the summary section with key metrics"""
         # Calculate summary statistics
@@ -319,6 +461,7 @@ class ReportGenerator:
                 <p>Generated on: {timestamp}</p>
                 
                 {self.generate_introduction()}
+                {self.generate_distribution_summary()}
                 {self.generate_summary_section()}
                 {self.create_interactive_plots()}
             </div>
