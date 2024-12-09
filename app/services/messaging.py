@@ -36,3 +36,15 @@ class KafkaService:
             'group.id': group_id,
             'auto.offset.reset': 'earliest'
         })
+
+    async def cleanup(self):
+        """Clean up Kafka producer"""
+        def _cleanup():
+            try:
+                # Flush any remaining messages
+                self.producer.flush()
+                # No need to close - the producer will be garbage collected
+            except Exception as e:
+                self.logger.error(f"Error cleaning up Kafka producer: {e}")
+        
+        await asyncio.to_thread(_cleanup)

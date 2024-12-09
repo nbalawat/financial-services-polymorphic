@@ -62,3 +62,13 @@ class CryptoPayment(BasePayment):
     wallet_address: str
     gas_fee: Optional[float] = None
     confirmation_blocks: Optional[int] = None
+
+class CardPayment(FiatPayment):
+    type: str = "CARD"
+    card_number: constr(min_length=15, max_length=16)  # Card numbers are typically 15-16 digits
+    expiry_month: int = Field(..., ge=1, le=12)
+    expiry_year: int = Field(..., ge=2024)  # Ensure card isn't expired
+    cvv: constr(min_length=3, max_length=4)  # CVV is 3-4 digits
+    card_type: str = Field(..., pattern='^(VISA|MASTERCARD|AMEX)$')
+    card_holder: str
+    billing_address: str

@@ -6,6 +6,7 @@ import json
 import logging
 import time
 import statistics
+from datetime import datetime
 
 class PaymentRouter:
     def __init__(self, kafka_config: Dict[str, Any]):
@@ -21,19 +22,53 @@ class PaymentRouter:
         }
         self.logger = logging.getLogger(__name__)
 
-    async def route_payment(self, payment: Dict[str, Any]):
+    def serialize_payment(self, payment: Dict[str, Any]) -> Dict[str, Any]:
+        """Serialize payment data to ensure JSON compatibility"""
+        serialized = {}
+        for key, value in payment.items():
+            if isinstance(value, datetime):
+                serialized[key] = value.isoformat()
+            else:
+                serialized[key] = value
+        return serialized
+
+    async def route_payment(self, payment: Dict[str, Any]) -> Dict[str, Any]:
         """Route payment based on type"""
-        payment_type = payment.get('type')
-        handler = self.routes.get(payment_type)
+        start_time = datetime.now()
+        metrics = {
+            'payment_type': payment.get('type', 'UNKNOWN'),
+            'router_type': None,
+            'kafka_time_ms': 0,
+            'total_time_ms': 0
+        }
         
-        if handler:
-            try:
-                return await handler(payment)
-            except Exception as e:
-                self.logger.error(f"Error processing {payment_type} payment: {e}")
-                return await self.handle_error(payment, str(e))
-        else:
-            return await self.handle_unknown_type(payment)
+        try:
+            payment_type = payment.get('type', 'UNKNOWN')
+            if payment_type in self.routes:
+                # Serialize payment before sending to Kafka
+                serialized_payment = self.serialize_payment(payment)
+                result = await self.routes[payment_type](serialized_payment)
+                metrics['router_type'] = result.get('route', 'unknown')
+            else:
+                result = await self.handle_unknown_type(payment)
+                metrics['router_type'] = 'unknown'
+            
+            # Wait for Kafka message delivery
+            kafka_start = datetime.now()
+            self.producer.flush()
+            kafka_end = datetime.now()
+            
+            # Calculate timings
+            end_time = datetime.now()
+            metrics['kafka_time_ms'] = (kafka_end - kafka_start).total_seconds() * 1000
+            metrics['total_time_ms'] = (end_time - start_time).total_seconds() * 1000
+            
+            return metrics
+            
+        except Exception as e:
+            self.logger.error(f"Error routing payment: {e}")
+            await self.handle_error(payment, str(e))
+            raise
 
     async def handle_swift(self, payment: Dict[str, Any]):
         """Handle SWIFT payment processing"""
@@ -182,10 +217,14 @@ class PaymentRouter:
 
     async def handle_error(self, payment: Dict[str, Any], error: str):
         """Handle payment processing error"""
+        self.logger.error(f"Payment processing error: {error}")
         self.producer.produce(
-            'failed-payments',
-            key=payment['payment_id'],
-            value=json.dumps({'payment': payment, 'error': error})
+            'error-payments',
+            key=payment.get('payment_id', 'unknown'),
+            value=json.dumps({
+                'payment': self.serialize_payment(payment), 
+                'error': error
+            })
         )
         return {'status': 'error', 'route': 'error', 'error': error}
 
@@ -201,25 +240,36 @@ class PaymentRouter:
 class PaymentProcessor:
     def __init__(self, db_config: Dict[str, Any], kafka_config: Dict[str, Any]):
         self.router = PaymentRouter(kafka_config)
-        self.db_config = db_config
-        self.processing_times = []
+        self.db_service = DatabaseService(db_config)
+        self.performance_metrics = []
+        self.logger = logging.getLogger(__name__)
 
     async def process_batch(self, payments: List[Dict[str, Any]]):
         """Process a batch of payments"""
-        results = []
         for payment in payments:
-            start_time = time.time()
-            result = await self.router.route_payment(payment)
-            processing_time = time.time() - start_time
-            self.processing_times.append(processing_time)
-            results.append(result)
-        return results
+            try:
+                # Route the payment and get routing metrics
+                routing_metrics = await self.router.route_payment(payment)
+                
+                # Store in database and get storage metrics
+                db_metrics = await self.db_service.store_payment(payment)
+                
+                # Combine all metrics
+                metrics = {
+                    'payment_type': routing_metrics['payment_type'],
+                    'router_type': routing_metrics['router_type'],
+                    'database': db_metrics['database'],
+                    'db_persistence_time_ms': db_metrics['db_persistence_time_ms'],
+                    'kafka_time_ms': routing_metrics['kafka_time_ms'],
+                    'total_time_ms': routing_metrics['total_time_ms']
+                }
+                
+                self.performance_metrics.append(metrics)
+                
+            except Exception as e:
+                self.logger.error(f"Error processing payment: {e}")
+                continue
 
-    def get_performance_metrics(self):
-        """Calculate performance metrics"""
-        return {
-            'average_processing_time': statistics.mean(self.processing_times),
-            'max_processing_time': max(self.processing_times),
-            'min_processing_time': min(self.processing_times),
-            'total_payments': len(self.processing_times)
-        }
+    def get_performance_metrics(self) -> List[Dict[str, Any]]:
+        """Get all collected performance metrics"""
+        return self.performance_metrics
